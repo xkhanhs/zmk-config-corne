@@ -2,45 +2,39 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 
-// 36 keys plus two cells on the left outer column. Firmware sends QWERTY
-// keycodes; on the host VTX (Colemak mode) remaps them to Colemak DH-Viet,
-// so the comments show the character that comes out under DH-Viet.
-// VTX re-addresses Cmd/Ctrl/Alt chords by DH-Viet letter as well, which is
-// why C-c sends Ctrl+V and `:` sends Shift+Y.
+// Corne, 5 columns: the same 36-key layout as the KLOR in xkhanhs/zmk-config-klor
+// (klor.keymap). The outer column of each half is &none on every layer; the
+// matrix still has 42 positions, so only the left half needs flashing.
+// Firmware sends QWERTY keycodes; on the host VTX (Colemak mode) remaps them
+// to Colemak DH-Viet, so the comments show the character under DH-Viet.
 //
-// The only hold-tap is the NAV key: hold for the NAV layer, tap alone for a
-// sticky Shift. It gives the left hand a Shift for capitals on the right
-// hand, while the right thumb Shift covers the left hand. Letters, Space and
-// Cmd never wait on a timer.
+// ZMK Studio is enabled on the left half. Besides the reset button under the
+// OLED, FN + the left top-left key or the right bottom-right key reboots that
+// half into the bootloader. FN is NAV held with the left index held on B.
+
+#define XXX &none
 
 / {
-	behaviors {
-		nav_shift: nav_shift {
-			compatible = "zmk,behavior-hold-tap";
-			#binding-cells = <2>;
-			// balanced: a key pressed and released while NAV is down makes it
-			// a hold at once, so NAV + digit or arrow does not wait.
-			flavor = "balanced";
-			tapping-term-ms = <200>;
-			bindings = <&mo>, <&sk>;
-		};
-	};
-
 	keymap {
 		compatible = "zmk,keymap";
 
 		default_layer {
 			display-name = "BASE";
-			// | C-4 |  q  |  w  |  f  |  g  |  b  |   |  ;  |  l  |  u  |  y  |  x  |     |
-			// | C-3 |  a  |  h  |  s  |  t  |  p  |   |  m  |  n  |  e  |  o  |  i  |     |
-			// |     |  j  |  v  |  r  |  c  |  z  |   |  k  |  d  |  ,  |  .  |  /  |     |
-			//                   | GUI |NAV/⇧| SPC |   | BSPC| SHFT| ENT |
-			// C-4 and C-3 pick an input source directly.
+			// The ; key of DH-Viet sends Shift so it types ":"; plain ";" is on FN.
+			// The right middle thumb is Shift held and Tab tapped, so Cmd+Tab is
+			// the left thumb holding GUI and the right thumb tapping, and each
+			// further tap moves on through the app switcher. &mt is
+			// hold-preferred, so a key pressed while it is down is shifted.
+			// It is the only Shift: the left middle thumb only holds NAV.
+			// |  q  |  w  |  f  |  g  |  b  |   |  :  |  l  |  u  |  y  |  x  |
+			// |  a  |  h  |  s  |  t  |  p  |   |  m  |  n  |  e  |  o  |  i  |
+			// |  j  |  v  |  r  |  c  |  z  |   |  k  |  d  |  ,  |  .  |  /  |
+			//       | GUI | NAV | SPC |   | BSPC|⇧/TAB| ENT |
 			bindings = <
-&kp LC(N4) &kp Q &kp W &kp E &kp R &kp T   &kp Y &kp U &kp I     &kp O   &kp P    &none
-&kp LC(N3) &kp A &kp S &kp D &kp F &kp G   &kp H &kp J &kp K     &kp L   &kp SEMI &none
-&none      &kp Z &kp X &kp C &kp V &kp B   &kp N &kp M &kp COMMA &kp DOT &kp FSLH &none
-              &kp LGUI &nav_shift 1 LSHFT &kp SPACE   &kp BSPC &kp LSHFT &kp RET
+&none &kp Q &kp W &kp E &kp R &kp T   &kp LS(Y) &kp U &kp I &kp O   &kp P   &none
+&none &kp A &kp S &kp D &kp F &kp G   &kp H &kp J &kp K     &kp L   &kp SEMI   &none
+&none &kp Z &kp X &kp C &kp V &kp B   &kp N &kp M &kp COMMA &kp DOT &kp FSLH   &none
+      &kp LGUI &mo 1 &kp SPACE   &kp BSPC &mt LSHFT TAB &kp RET
 			>;
 		};
 
@@ -48,32 +42,36 @@
 			display-name = "NAV";
 			// Left hand moves, right hand is a numpad. CMDTAB returns to the
 			// last app in one press, SHOT4 is Cmd+Shift+4, FN is held on top
-			// of NAV, DELW deletes a word (Alt+Backspace).
-			// |     | ESC  |  [   |  UP  |  ]   | TAB  |   |  /   |  7   |  8   |  9   |  -   |     |
-			// |     | GUI  | LEFT | DOWN | RGHT |CMDTAB|   |  *   |  4   |  5   |  6   |  +   |     |
-			// |     | SHFT |  (   |  )   | SHOT4|  FN  |   |  =   |  1   |  2   |  3   |  .   |     |
-			//                      |      | held |      |   | DELW |  0   | S-ENT|
+			// of NAV. NAV is on only while its thumb is held. DELWD is
+			// Option+Backspace, delete word.
+			// | ESC  |  [   |  UP  |  ]   | TAB  |   |  /   |  7   |  8   |  9   |  -   |
+			// | GUI  | LEFT | DOWN | RGHT |CMDTAB|   |  *   |  4   |  5   |  6   |  +   |
+			// | SHFT |  (   |  )   | SHOT4|  FN  |   |  =   |  1   |  2   |  3   |  .   |
+			//               |      | held |      |   | DELWD|  0   | S-ENT|
 			bindings = <
-&none &kp ESC   &kp LBKT &kp UP   &kp RBKT       &kp TAB        &kp FSLH  &kp N7 &kp N8 &kp N9 &kp MINUS &none
-&none &kp LGUI  &kp LEFT &kp DOWN &kp RIGHT      &kp LG(TAB)    &kp STAR  &kp N4 &kp N5 &kp N6 &kp PLUS  &none
-&none &kp LSHFT &kp LPAR &kp RPAR &kp LG(LS(N4)) &mo 2          &kp EQUAL &kp N1 &kp N2 &kp N3 &kp DOT   &none
-                         &trans   &trans         &trans         &kp LA(BSPC) &kp N0 &kp LS(RET)
+&none &kp ESC   &kp LBKT &kp UP   &kp RBKT       &kp TAB       &kp FSLH  &kp N7 &kp N8 &kp N9 &kp MINUS   &none
+&none &kp LGUI  &kp LEFT &kp DOWN &kp RIGHT      &kp LG(TAB)   &kp STAR  &kp N4 &kp N5 &kp N6 &kp PLUS   &none
+&none &kp LSHFT &kp LPAR &kp RPAR &kp LG(LS(N4)) &mo 2         &kp EQUAL &kp N1 &kp N2 &kp N3 &kp DOT   &none
+                   &trans   &trans         &trans        &kp LA(BSPC) &kp N0 &kp LS(RET)
 			>;
 		};
 
 		fn_layer {
 			display-name = "FN";
-			// Everything usable is on the right hand: the left hand holds NAV
-			// and FN. Empty cells are &none so a stray touch does not type a
-			// NAV digit. BTCLR clears the selected Bluetooth profile.
-			// |     |      |      |      |      |      |   |  :   |      | BRI- | BRI+ | BTCLR|     |
-			// |     |      |      |      |      |      |   |      | MUTE | VOL- | VOL+ | PLAY |     |
-			// |     |      |      |      |      | held |   | C-c  |  ?   |  '   |  "   |      |     |
+			// Everything usable is on the right hand: the left index holds FN
+			// while the left thumb holds NAV. Empty cells are &none so a stray
+			// touch does not type a NAV digit. BTCLR clears the selected
+			// Bluetooth profile. C-4 and C-3 pick an input source directly (they used
+			// to sit on the outer column of BASE). BOOT reboots that half into the bootloader for flashing.
+			// The ; cell sends Y, which is ; on DH-Viet.
+			// | BOOT |      |      |      |      |   |  ;   |  @   | MUTE | BRI+ | BTCLR|
+			// |      |      |      |      |      |   |  "   |  ?   | VOL+ | BRI- |      |
+			// |      |      |      |      | held |   | C-c  | C-4  | VOL- | C-3  | BOOT |
 			bindings = <
-&none &none &none &none &none &none     &kp LS(Y) &none      &kp C_BRI_DN &kp C_BRI_UP &bt BT_CLR &none
-&none &none &none &none &none &none     &none     &kp C_MUTE &kp C_VOL_DN &kp C_VOL_UP &kp C_PP   &none
-&none &none &none &none &none &trans    &kp LC(V) &kp QMARK  &kp SQT      &kp DQT      &none      &none
-                  &trans &trans &trans     &trans &trans &trans
+&none &bootloader XXX XXX XXX XXX      &kp Y      &kp AT     &kp C_MUTE   &kp C_BRI_UP &bt BT_CLR   &none
+&none XXX         XXX XXX XXX XXX      &kp DQT    &kp QMARK  &kp C_VOL_UP &kp C_BRI_DN XXX   &none
+&none XXX         XXX XXX XXX &trans   &kp LC(V)  &kp LC(N4) &kp C_VOL_DN &kp LC(N3)   &bootloader   &none
+            &trans &trans &trans   &trans &trans &trans
 			>;
 		};
 	};
