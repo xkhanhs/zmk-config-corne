@@ -1,0 +1,8 @@
+config CORNE_OLED_OFF
+	bool "Put the OLED to sleep at boot"
+	default y
+	depends on DISPLAY && !ZMK_DISPLAY
+	help
+	  With ZMK's display support off the panel keeps showing its last frame
+	  for as long as it has power. Send it the display-off command once at
+	  boot so it goes dark and draws almost nothing.
