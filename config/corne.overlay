@@ -150,3 +150,19 @@ RC(2,0) RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(2,5)  RC(2,6)  RC(2,7) RC(2,8) RC(2,9
 				 LED_COLOR_ID_BLUE>;
 	};
 };
+
+/*
+ * Cắt nguồn VCC của nice!nano (P0.13, mức cao = bật) ngay khi khởi động để màn
+ * OLED tắt hẳn. Firmware đã tắt màn nhưng nếu VCC còn điện thì màn giữ khung hình
+ * cuối và vẫn tốn pin. Muốn dùng lại màn: xoá đoạn này, đặt
+ * CONFIG_ZMK_EXT_POWER=y và CONFIG_ZMK_DISPLAY=y.
+ */
+/delete-node/ &{/EXT_POWER};
+
+&gpio0 {
+	vcc_off: vcc_off {
+		gpio-hog;
+		gpios = <13 GPIO_ACTIVE_HIGH>;
+		output-low;
+	};
+};
